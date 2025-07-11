@@ -1,6 +1,6 @@
 /**
  * Usage Example: Complete LLM Export Import Workflow
- * 
+ *
  * Demonstrates the full pipeline from export file to organized writing projects
  * using dynamic model optimization and hybrid classification.
  */
@@ -22,18 +22,20 @@ async function main() {
 
   // Example: Processing a large ChatGPT export
   const exportFile = './exports/chatgpt-export-2024.json';
-  
+
   try {
     // Step 1: Parse the export file
     console.log('📂 Loading export file...');
     const exportData = await loadExportFile(exportFile);
-    console.log(`   Found ${exportData.conversations.length} conversations from ${exportData.platform}\n`);
+    console.log(
+      `   Found ${exportData.conversations.length} conversations from ${exportData.platform}\n`
+    );
 
     // Step 2: Estimate processing requirements and find optimal model
     console.log('⚡ Optimizing model selection for cost and accuracy...');
     const estimatedTokens = estimateTokenCount(exportData.conversations);
     const recommendation = await recommendOptimalModel(estimatedTokens);
-    
+
     // Step 3: Get user confirmation
     const confirmed = await confirmModelSelection(recommendation);
     if (!confirmed) {
@@ -49,14 +51,13 @@ async function main() {
     // Step 5: Organize and export results
     console.log('📁 Organizing classified content...');
     const projects = await organizeIntoProjects(results, exportData.conversations);
-    
+
     // Step 6: Generate outputs
     console.log('💾 Generating organized outputs...\n');
     await generateOutputs(projects, exportData.platform);
-    
+
     // Step 7: Show final summary
     showFinalSummary(results, recommendation, projects);
-
   } catch (error) {
     console.error('❌ Import failed:', error);
     process.exit(1);
@@ -69,28 +70,28 @@ async function main() {
 async function loadExportFile(filePath: string): Promise<ExportFile> {
   const fs = require('fs');
   const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  
+
   // Auto-detect platform and normalize format
   if (data.mapping) {
     // ChatGPT format
     return {
       path: filePath,
       platform: 'chatgpt',
-      conversations: parseChatGPTExport(data)
+      conversations: parseChatGPTExport(data),
     };
   } else if (data.conversations) {
     // Claude format
     return {
       path: filePath,
       platform: 'claude',
-      conversations: parseClaudeExport(data)
+      conversations: parseClaudeExport(data),
     };
   } else if (data.chats) {
     // Gemini format
     return {
       path: filePath,
       platform: 'gemini',
-      conversations: parseGeminiExport(data)
+      conversations: parseGeminiExport(data),
     };
   } else {
     throw new Error('Unknown export format');
@@ -104,7 +105,7 @@ function estimateTokenCount(conversations: ConversationData[]): number {
   const totalChars = conversations.reduce((sum, conv) => {
     return sum + conv.messages.reduce((msgSum, msg) => msgSum + msg.content.length, 0);
   }, 0);
-  
+
   // Rough approximation: 4 characters per token
   return Math.ceil(totalChars / 4);
 }
@@ -120,17 +121,17 @@ async function organizeIntoProjects(
     .filter(r => r.isWriting && r.confidence > 0.6)
     .map(r => ({
       classification: r,
-      conversation: conversations.find(c => c.id === r.id)!
+      conversation: conversations.find(c => c.id === r.id)!,
     }));
 
   console.log(`📝 Found ${writingConversations.length} writing conversations to organize`);
 
   // Group by category and detect projects
   const projectGroups = new Map<string, typeof writingConversations>();
-  
+
   writingConversations.forEach(({ classification, conversation }) => {
     const key = `${classification.category}-${detectProjectTheme(conversation)}`;
-    
+
     if (!projectGroups.has(key)) {
       projectGroups.set(key, []);
     }
@@ -143,7 +144,7 @@ async function organizeIntoProjects(
 
   for (const [groupKey, conversations] of projectGroups) {
     const [category, theme] = groupKey.split('-');
-    
+
     projects.push({
       id: `project-${projectId++}`,
       title: generateProjectTitle(category, theme, conversations.length),
@@ -153,8 +154,8 @@ async function organizeIntoProjects(
       stats: {
         conversationCount: conversations.length,
         totalMessages: conversations.reduce((sum, c) => sum + c.conversation.messages.length, 0),
-        estimatedWords: estimateWordCount(conversations.map(c => c.conversation))
-      }
+        estimatedWords: estimateWordCount(conversations.map(c => c.conversation)),
+      },
     });
   }
 
@@ -190,7 +191,7 @@ async function generateOutputs(projects: WritingProject[], platform: string): Pr
       const conv = project.conversations[i];
       const markdown = generateConversationMarkdown(conv);
       const filename = `${i + 1}-${sanitizeFilename(conv.title)}.md`;
-      
+
       await fs.writeFile(path.join(conversationsDir, filename), markdown);
     }
 
@@ -245,21 +246,34 @@ interface ClassificationResult {
   id: string;
   isWriting: boolean;
   confidence: number;
-  category: 'fiction' | 'non-fiction' | 'screenplay' | 'poetry' | 'technical' | 'academic' | 'casual';
+  category:
+    | 'fiction'
+    | 'non-fiction'
+    | 'screenplay'
+    | 'poetry'
+    | 'technical'
+    | 'academic'
+    | 'casual';
   quality: 'fragment' | 'draft' | 'substantial';
   reasoning?: string;
 }
 
 function detectProjectTheme(conversation: ConversationData): string {
   // Simple theme detection based on title and content
-  const text = (conversation.title + ' ' + conversation.messages.map(m => m.content).join(' ')).toLowerCase();
-  
+  const text = (
+    conversation.title +
+    ' ' +
+    conversation.messages.map(m => m.content).join(' ')
+  ).toLowerCase();
+
   if (text.includes('novel') || text.includes('book') || text.includes('chapter')) return 'novel';
-  if (text.includes('script') || text.includes('screenplay') || text.includes('dialogue')) return 'screenplay';
+  if (text.includes('script') || text.includes('screenplay') || text.includes('dialogue'))
+    return 'screenplay';
   if (text.includes('article') || text.includes('blog') || text.includes('post')) return 'article';
   if (text.includes('poem') || text.includes('poetry') || text.includes('verse')) return 'poetry';
-  if (text.includes('research') || text.includes('paper') || text.includes('thesis')) return 'academic';
-  
+  if (text.includes('research') || text.includes('paper') || text.includes('thesis'))
+    return 'academic';
+
   return 'general';
 }
 
@@ -270,32 +284,38 @@ function generateProjectTitle(category: string, theme: string, count: number): s
     screenplay: 'Screenplay Development',
     poetry: 'Poetry Collection',
     technical: 'Technical Writing',
-    academic: 'Academic Research'
+    academic: 'Academic Research',
   };
 
   const base = categoryMap[category] || 'Writing Project';
-  const themeStr = theme !== 'general' ? ` - ${theme.charAt(0).toUpperCase() + theme.slice(1)}` : '';
+  const themeStr =
+    theme !== 'general' ? ` - ${theme.charAt(0).toUpperCase() + theme.slice(1)}` : '';
   return `${base}${themeStr} (${count} conversations)`;
 }
 
 function sanitizeFilename(filename: string): string {
-  return filename.replace(/[^a-z0-9\-_\s]/gi, '').replace(/\s+/g, '-').toLowerCase();
+  return filename
+    .replace(/[^a-z0-9\-_\s]/gi, '')
+    .replace(/\s+/g, '-')
+    .toLowerCase();
 }
 
 function estimateWordCount(conversations: ConversationData[]): number {
   const totalChars = conversations.reduce((sum, conv) => {
     return sum + conv.messages.reduce((msgSum, msg) => msgSum + msg.content.length, 0);
   }, 0);
-  
+
   // Rough approximation: 5 characters per word
   return Math.ceil(totalChars / 5);
 }
 
 function generateConversationMarkdown(conversation: ConversationData): string {
-  const messages = conversation.messages.map(msg => {
-    const role = msg.role === 'user' || msg.role === 'human' ? 'Human' : 'Assistant';
-    return `## ${role}\n\n${msg.content}\n`;
-  }).join('\n');
+  const messages = conversation.messages
+    .map(msg => {
+      const role = msg.role === 'user' || msg.role === 'human' ? 'Human' : 'Assistant';
+      return `## ${role}\n\n${msg.content}\n`;
+    })
+    .join('\n');
 
   return `# ${conversation.title}\n\n${messages}`;
 }
@@ -316,9 +336,12 @@ async function generateProjectSummary(projectDir: string, project: WritingProjec
 ${project.conversations.map((conv, i) => `${i + 1}. ${conv.title}`).join('\n')}
 
 ## Classification Details
-${project.classifications.map(c => 
-  `- **${c.category}** (${(c.confidence * 100).toFixed(0)}% confidence): ${c.reasoning || 'AI classified'}`
-).join('\n')}
+${project.classifications
+  .map(
+    c =>
+      `- **${c.category}** (${(c.confidence * 100).toFixed(0)}% confidence): ${c.reasoning || 'AI classified'}`
+  )
+  .join('\n')}
 
 Generated by LLM Export Importer
 `;

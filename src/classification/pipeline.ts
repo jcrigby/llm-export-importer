@@ -1,6 +1,6 @@
 /**
  * Hybrid Content Classification Pipeline for LLM Export Importer
- * 
+ *
  * Two-stage classification system:
  * 1. Fast rule-based pre-filtering to eliminate obvious non-writing content
  * 2. AI-powered classification for nuanced writing detection and categorization
@@ -21,7 +21,14 @@ export interface ClassificationResult {
   id: string;
   isWriting: boolean;
   confidence: number;
-  category: 'fiction' | 'non-fiction' | 'screenplay' | 'poetry' | 'technical' | 'academic' | 'casual';
+  category:
+    | 'fiction'
+    | 'non-fiction'
+    | 'screenplay'
+    | 'poetry'
+    | 'technical'
+    | 'academic'
+    | 'casual';
   quality: 'fragment' | 'draft' | 'substantial';
   extractedEntities?: {
     characters?: string[];
@@ -37,30 +44,30 @@ export interface ClassificationResult {
  */
 export class RuleBasedFilter {
   private codePatterns = [
-    /```[\s\S]*?```/g,                    // Code blocks
-    /function\s+\w+\s*\(/,                // Function definitions
-    /class\s+\w+/,                        // Class definitions
-    /import\s+.+from\s+['"`]/,            // Import statements
-    /\bdef\s+\w+\s*\(/,                    // Python functions
-    /console\.log\s*\(/,                  // Console logging
-    /\bif\s*\(\s*.+\s*\)\s*{/,            // Conditional statements
-    /\w+\[\d+\]\s*=/,                     // Array assignments
+    /```[\s\S]*?```/g, // Code blocks
+    /function\s+\w+\s*\(/, // Function definitions
+    /class\s+\w+/, // Class definitions
+    /import\s+.+from\s+['"`]/, // Import statements
+    /\bdef\s+\w+\s*\(/, // Python functions
+    /console\.log\s*\(/, // Console logging
+    /\bif\s*\(\s*.+\s*\)\s*{/, // Conditional statements
+    /\w+\[\d+\]\s*=/, // Array assignments
   ];
 
   private mathPatterns = [
-    /\d+\s*[+\-*/]\s*\d+/,                // Basic arithmetic
+    /\d+\s*[+\-*/]\s*\d+/, // Basic arithmetic
     /\b(equation|formula|calculate|solve)\b/i, // Math keywords
-    /\b\d+\s*=\s*\d+/,                    // Equations
-    /\b(sin|cos|tan|log|ln)\s*\(/,        // Math functions
-    /\∫|\∑|\∏/,                           // Math symbols
+    /\b\d+\s*=\s*\d+/, // Equations
+    /\b(sin|cos|tan|log|ln)\s*\(/, // Math functions
+    /∫|∑|∏/, // Math symbols
   ];
 
   private systemPatterns = [
-    /^Error:/,                            // Error messages
-    /^Warning:/,                          // Warning messages  
-    /^System:/,                           // System messages
-    /^DEBUG:/,                            // Debug output
-    /^\[.*\]\s*\d{4}-\d{2}-\d{2}/,       // Log entries
+    /^Error:/, // Error messages
+    /^Warning:/, // Warning messages
+    /^System:/, // System messages
+    /^DEBUG:/, // Debug output
+    /^\[.*\]\s*\d{4}-\d{2}-\d{2}/, // Log entries
   ];
 
   private writingIndicators = [
@@ -80,33 +87,33 @@ export class RuleBasedFilter {
     writingScore: number;
   } {
     const fullText = conversation.messages.map(m => m.content).join(' ');
-    
+
     // Check for obvious non-writing patterns
     if (this.hasCodePatterns(fullText)) {
       return { skip: true, reason: 'Contains code patterns', writingScore: 0 };
     }
-    
+
     if (this.hasMathPatterns(fullText)) {
       return { skip: true, reason: 'Contains mathematical content', writingScore: 0 };
     }
-    
+
     if (this.hasSystemPatterns(fullText)) {
       return { skip: true, reason: 'Contains system messages', writingScore: 0 };
     }
-    
+
     // Too short to be meaningful writing
     if (fullText.length < 100) {
       return { skip: true, reason: 'Content too short', writingScore: 0 };
     }
-    
+
     // Calculate basic writing score
     const writingScore = this.calculateWritingScore(fullText);
-    
+
     // Skip if very low writing indicators
     if (writingScore < 0.2) {
       return { skip: true, reason: 'Low writing indicators', writingScore };
     }
-    
+
     return { skip: false, writingScore };
   }
 
@@ -127,7 +134,7 @@ export class RuleBasedFilter {
       const found = text.match(pattern);
       return count + (found ? found.length : 0);
     }, 0);
-    
+
     // Normalize by text length (indicators per 1000 characters)
     return Math.min(1, (matches / (text.length / 1000)) * 0.5);
   }
@@ -152,8 +159,10 @@ export class AIClassifier {
     const results: ClassificationResult[] = [];
 
     for (let i = 0; i < batches.length; i++) {
-      console.log(`Processing batch ${i + 1}/${batches.length} (${batches[i].length} conversations)`);
-      
+      console.log(
+        `Processing batch ${i + 1}/${batches.length} (${batches[i].length} conversations)`
+      );
+
       try {
         const batchResults = await this.processBatch(batches[i]);
         results.push(...batchResults);
@@ -162,7 +171,7 @@ export class AIClassifier {
         // Add failed results with default values
         results.push(...batches[i].map(conv => this.createFailedResult(conv.id)));
       }
-      
+
       // Small delay to avoid rate limiting
       if (i < batches.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -182,39 +191,41 @@ export class AIClassifier {
 
   private async processBatch(conversations: ConversationData[]): Promise<ClassificationResult[]> {
     const prompt = this.createBatchPrompt(conversations);
-    
+
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: this.model,
         messages: [{ role: 'user', content: prompt }],
         max_tokens: 2000,
-        temperature: 0.1
-      })
+        temperature: 0.1,
+      }),
     });
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
     const content = data.choices[0].message.content;
-    
+
     return this.parseClassificationResults(content, conversations);
   }
 
   private createBatchPrompt(conversations: ConversationData[]): string {
-    const conversationSummaries = conversations.map((conv, index) => {
-      const messagePreview = conv.messages
-        .slice(0, 3) // First 3 messages for context
-        .map(m => `${m.role}: ${m.content.substring(0, 200)}...`)
-        .join('\n');
-      
-      return `--- Conversation ${index + 1} (ID: ${conv.id}) ---
+    const conversationSummaries = conversations
+      .map((conv, index) => {
+        const messagePreview = conv.messages
+          .slice(0, 3) // First 3 messages for context
+          .map(m => `${m.role}: ${m.content.substring(0, 200)}...`)
+          .join('\n');
+
+        return `--- Conversation ${index + 1} (ID: ${conv.id}) ---
 Title: ${conv.title}
 Messages preview:
 ${messagePreview}`;
-    }).join('\n\n');
+      })
+      .join('\n\n');
 
     return `Analyze these conversations and classify each for writing content. For each conversation, determine:
 
@@ -238,7 +249,10 @@ Return JSON array with exactly ${conversations.length} objects:
 ]`;
   }
 
-  private parseClassificationResults(content: string, conversations: ConversationData[]): ClassificationResult[] {
+  private parseClassificationResults(
+    content: string,
+    conversations: ConversationData[]
+  ): ClassificationResult[] {
     try {
       // Extract JSON from response (handle potential markdown formatting)
       const jsonMatch = content.match(/\[[\s\S]*\]/);
@@ -247,7 +261,7 @@ Return JSON array with exactly ${conversations.length} objects:
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       // Validate and map results
       return conversations.map((conv, index) => {
         const result = parsed[index];
@@ -261,10 +275,9 @@ Return JSON array with exactly ${conversations.length} objects:
           confidence: Math.max(0, Math.min(1, parseFloat(result.confidence) || 0)),
           category: this.validateCategory(result.category),
           quality: this.validateQuality(result.quality),
-          reasoning: result.reasoning || 'AI classification'
+          reasoning: result.reasoning || 'AI classification',
         };
       });
-
     } catch (error) {
       console.warn('Failed to parse AI classification results:', error);
       return conversations.map(conv => this.createFailedResult(conv.id));
@@ -272,13 +285,25 @@ Return JSON array with exactly ${conversations.length} objects:
   }
 
   private validateCategory(category: string): ClassificationResult['category'] {
-    const validCategories = ['fiction', 'non-fiction', 'screenplay', 'poetry', 'technical', 'academic', 'casual'];
-    return validCategories.includes(category) ? category as ClassificationResult['category'] : 'casual';
+    const validCategories = [
+      'fiction',
+      'non-fiction',
+      'screenplay',
+      'poetry',
+      'technical',
+      'academic',
+      'casual',
+    ];
+    return validCategories.includes(category)
+      ? (category as ClassificationResult['category'])
+      : 'casual';
   }
 
   private validateQuality(quality: string): ClassificationResult['quality'] {
     const validQualities = ['fragment', 'draft', 'substantial'];
-    return validQualities.includes(quality) ? quality as ClassificationResult['quality'] : 'fragment';
+    return validQualities.includes(quality)
+      ? (quality as ClassificationResult['quality'])
+      : 'fragment';
   }
 
   private createFailedResult(id: string): ClassificationResult {
@@ -288,7 +313,7 @@ Return JSON array with exactly ${conversations.length} objects:
       confidence: 0,
       category: 'casual',
       quality: 'fragment',
-      reasoning: 'Classification failed'
+      reasoning: 'Classification failed',
     };
   }
 }
@@ -308,14 +333,18 @@ export class ClassificationPipeline {
   /**
    * Process all conversations through the complete pipeline
    */
-  public async processConversations(conversations: ConversationData[]): Promise<ClassificationResult[]> {
-    console.log(`\n🔍 Starting classification pipeline for ${conversations.length} conversations...\n`);
-    
+  public async processConversations(
+    conversations: ConversationData[]
+  ): Promise<ClassificationResult[]> {
+    console.log(
+      `\n🔍 Starting classification pipeline for ${conversations.length} conversations...\n`
+    );
+
     // Stage 1: Rule-based filtering
     console.log('📋 Stage 1: Rule-based pre-filtering...');
     const filterResults = conversations.map(conv => ({
       conversation: conv,
-      assessment: this.ruleFilter.assessConversation(conv)
+      assessment: this.ruleFilter.assessConversation(conv),
     }));
 
     const skipped = filterResults.filter(r => r.assessment.skip);
@@ -326,13 +355,11 @@ export class ClassificationPipeline {
 
     // Stage 2: AI classification for remaining conversations
     console.log('🤖 Stage 2: AI-powered classification...');
-    const aiResults = await this.aiClassifier.classifyBatch(
-      remaining.map(r => r.conversation)
-    );
+    const aiResults = await this.aiClassifier.classifyBatch(remaining.map(r => r.conversation));
 
     // Combine results
     const allResults: ClassificationResult[] = [];
-    
+
     // Add skipped conversations as non-writing
     skipped.forEach(({ conversation, assessment }) => {
       allResults.push({
@@ -341,7 +368,7 @@ export class ClassificationPipeline {
         confidence: 1.0,
         category: 'casual',
         quality: 'fragment',
-        reasoning: `Rule-based filter: ${assessment.reason}`
+        reasoning: `Rule-based filter: ${assessment.reason}`,
       });
     });
 
@@ -349,26 +376,33 @@ export class ClassificationPipeline {
     allResults.push(...aiResults);
 
     // Sort by original order
-    const orderedResults = conversations.map(conv => 
-      allResults.find(result => result.id === conv.id)!
+    const orderedResults = conversations.map(
+      conv => allResults.find(result => result.id === conv.id)!
     );
 
     console.log('\n📊 Classification Summary:');
     const writingCount = orderedResults.filter(r => r.isWriting).length;
     const categoryBreakdown = this.summarizeCategories(orderedResults.filter(r => r.isWriting));
-    
-    console.log(`   📝 Writing conversations: ${writingCount}/${conversations.length} (${(writingCount/conversations.length*100).toFixed(1)}%)`);
+
+    console.log(
+      `   📝 Writing conversations: ${writingCount}/${conversations.length} (${((writingCount / conversations.length) * 100).toFixed(1)}%)`
+    );
     console.log(`   🗂️  Category breakdown: ${categoryBreakdown}`);
-    console.log(`   💰 AI API calls: ${Math.ceil(remaining.length / 5)} (${remaining.length} conversations in batches)\n`);
+    console.log(
+      `   💰 AI API calls: ${Math.ceil(remaining.length / 5)} (${remaining.length} conversations in batches)\n`
+    );
 
     return orderedResults;
   }
 
   private summarizeCategories(writingResults: ClassificationResult[]): string {
-    const counts = writingResults.reduce((acc, result) => {
-      acc[result.category] = (acc[result.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const counts = writingResults.reduce(
+      (acc, result) => {
+        acc[result.category] = (acc[result.category] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     return Object.entries(counts)
       .map(([category, count]) => `${category}:${count}`)

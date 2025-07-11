@@ -1,6 +1,6 @@
 /**
  * Gemini Export Parser for LLM Export Importer
- * 
+ *
  * Handles Google Gemini export format with its chats array structure.
  * Note: Gemini export format may vary as the platform evolves.
  */
@@ -43,7 +43,7 @@ export class GeminiParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Invalid JSON data']
+        issues: ['Invalid JSON data'],
       };
     }
 
@@ -53,13 +53,13 @@ export class GeminiParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Missing or invalid chats array']
+        issues: ['Missing or invalid chats array'],
       };
     }
 
     // Validate chat structure
     let validChats = 0;
-    let totalChats = data.chats.length;
+    const totalChats = data.chats.length;
 
     for (const chat of data.chats) {
       if (this.isValidGeminiChat(chat)) {
@@ -74,7 +74,7 @@ export class GeminiParser extends BaseParser {
         isValid: false,
         platform: 'gemini',
         confidence: 0.2,
-        issues: ['No valid Gemini chats found', ...issues]
+        issues: ['No valid Gemini chats found', ...issues],
       };
     }
 
@@ -84,7 +84,7 @@ export class GeminiParser extends BaseParser {
       isValid: confidence > 0.5,
       platform: 'gemini',
       confidence,
-      issues: confidence < 1 ? issues : []
+      issues: confidence < 1 ? issues : [],
     };
   }
 
@@ -99,10 +99,8 @@ export class GeminiParser extends BaseParser {
       .filter(conv => conv.messages.length > 0);
 
     // Calculate metadata
-    const timestamps = conversations.flatMap(conv => 
-      conv.messages.map(msg => msg.timestamp)
-    );
-    
+    const timestamps = conversations.flatMap(conv => conv.messages.map(msg => msg.timestamp));
+
     const sortedTimestamps = timestamps.sort();
 
     return {
@@ -111,11 +109,11 @@ export class GeminiParser extends BaseParser {
         totalConversations: conversations.length,
         dateRange: {
           earliest: sortedTimestamps[0] || new Date().toISOString(),
-          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString()
+          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString(),
         },
         platform: 'gemini',
-        exportVersion: data.export_metadata?.version || 'unknown'
-      }
+        exportVersion: data.export_metadata?.version || 'unknown',
+      },
     };
   }
 
@@ -147,9 +145,9 @@ export class GeminiParser extends BaseParser {
       messages: chat.messages.map(msg => ({
         role: this.normalizeRole(msg.author),
         content: this.cleanContent(msg.text),
-        timestamp: this.normalizeTimestamp(msg.timestamp)
+        timestamp: this.normalizeTimestamp(msg.timestamp),
       })),
-      platform: 'gemini'
+      platform: 'gemini',
     };
   }
 

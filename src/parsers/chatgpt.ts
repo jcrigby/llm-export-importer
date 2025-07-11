@@ -1,6 +1,6 @@
 /**
  * ChatGPT Export Parser for LLM Export Importer
- * 
+ *
  * Handles OpenAI ChatGPT export format with its unique mapping structure.
  * ChatGPT exports use a UUID-based mapping system for message organization.
  */
@@ -53,25 +53,25 @@ export class ChatGPTParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Invalid JSON data']
+        issues: ['Invalid JSON data'],
       };
     }
 
     // Modern format: array of conversations
     if (data.conversations && Array.isArray(data.conversations)) {
-      const hasValidConversations = data.conversations.some((conv: any) => 
-        conv.mapping && typeof conv.mapping === 'object'
+      const hasValidConversations = data.conversations.some(
+        (conv: any) => conv.mapping && typeof conv.mapping === 'object'
       );
-      
+
       if (hasValidConversations) {
         return {
           isValid: true,
           platform: 'chatgpt',
           confidence: 0.95,
-          issues: []
+          issues: [],
         };
       }
-      
+
       issues.push('Conversations array found but no valid mapping structures');
     }
 
@@ -81,7 +81,7 @@ export class ChatGPTParser extends BaseParser {
         isValid: true,
         platform: 'chatgpt',
         confidence: 0.9,
-        issues: []
+        issues: [],
       };
     }
 
@@ -92,7 +92,7 @@ export class ChatGPTParser extends BaseParser {
         isValid: false,
         platform: 'chatgpt',
         confidence: 0.3,
-        issues
+        issues,
       };
     }
 
@@ -100,13 +100,13 @@ export class ChatGPTParser extends BaseParser {
       isValid: false,
       platform: 'unknown',
       confidence: 0,
-      issues: ['No ChatGPT format indicators found']
+      issues: ['No ChatGPT format indicators found'],
     };
   }
 
   parse(data: ChatGPTExport): ParseResult {
     let conversations: ConversationData[];
-    
+
     if (data.conversations && Array.isArray(data.conversations)) {
       // Modern format: multiple conversations
       conversations = data.conversations.map(conv => this.parseConversation(conv));
@@ -115,7 +115,7 @@ export class ChatGPTParser extends BaseParser {
       const singleConv: ChatGPTConversation = {
         title: data.title || 'Untitled Conversation',
         create_time: data.create_time || Date.now() / 1000,
-        mapping: data.mapping
+        mapping: data.mapping,
       };
       conversations = [this.parseConversation(singleConv)];
     } else {
@@ -123,10 +123,8 @@ export class ChatGPTParser extends BaseParser {
     }
 
     // Calculate metadata
-    const timestamps = conversations.flatMap(conv => 
-      conv.messages.map(msg => msg.timestamp)
-    );
-    
+    const timestamps = conversations.flatMap(conv => conv.messages.map(msg => msg.timestamp));
+
     const sortedTimestamps = timestamps.sort();
 
     return {
@@ -135,39 +133,41 @@ export class ChatGPTParser extends BaseParser {
         totalConversations: conversations.length,
         dateRange: {
           earliest: sortedTimestamps[0] || new Date().toISOString(),
-          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString()
+          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString(),
         },
         platform: 'chatgpt',
-        exportVersion: this.detectExportVersion(data)
-      }
+        exportVersion: this.detectExportVersion(data),
+      },
     };
   }
 
   private parseConversation(conversation: ChatGPTConversation): ConversationData {
     const messages = this.extractMessagesFromMapping(conversation.mapping);
-    
+
     return {
-      id: conversation.conversation_id || this.generateId(conversation.title, conversation.create_time.toString()),
+      id:
+        conversation.conversation_id ||
+        this.generateId(conversation.title, conversation.create_time.toString()),
       title: conversation.title || 'Untitled Conversation',
       messages: messages.map(msg => ({
         role: this.normalizeRole(msg.author.role),
         content: this.cleanContent(msg.content.parts),
-        timestamp: this.normalizeTimestamp(msg.create_time)
+        timestamp: this.normalizeTimestamp(msg.create_time),
       })),
-      platform: 'chatgpt'
+      platform: 'chatgpt',
     };
   }
 
   private extractMessagesFromMapping(mapping: ChatGPTConversation['mapping']): ChatGPTMessage[] {
     const messages: ChatGPTMessage[] = [];
-    
+
     // Extract all messages from the mapping
     for (const [_uuid, node] of Object.entries(mapping)) {
       if (node.message && node.message.content && node.message.content.parts.length > 0) {
         messages.push(node.message);
       }
     }
-    
+
     // Sort by creation time
     return messages.sort((a, b) => a.create_time - b.create_time);
   }
@@ -189,11 +189,11 @@ export class ChatGPTParser extends BaseParser {
     if (data.conversations && Array.isArray(data.conversations)) {
       return '2024-06'; // Modern multi-conversation format
     }
-    
+
     if (data.mapping && data.title) {
       return '2023-12'; // Legacy single conversation format
     }
-    
+
     return 'unknown';
   }
 }

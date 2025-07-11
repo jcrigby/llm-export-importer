@@ -1,6 +1,6 @@
 /**
  * Parser Module Index for LLM Export Importer
- * 
+ *
  * Exports all platform-specific parsers and utility functions for
  * auto-detection and parsing of AI chat platform exports.
  */
@@ -24,7 +24,7 @@ const PARSERS = [
   new ChatGPTParser(),
   new ClaudeParser(),
   new GeminiParser(),
-  new PerplexityParser()
+  new PerplexityParser(),
 ];
 
 /**
@@ -53,15 +53,17 @@ export function getParser(platform: string): BaseParser | null {
 /**
  * Auto-detects platform and returns the appropriate parser
  */
-export function autoSelectParser(data: any): { parser: BaseParser; validation: ParserValidationResult } | null {
+export function autoSelectParser(
+  data: any
+): { parser: BaseParser; validation: ParserValidationResult } | null {
   const validation = detectPlatform(data);
-  
+
   if (!validation.isValid) {
     return null;
   }
 
   const parser = getParser(validation.platform);
-  
+
   if (!parser) {
     return null;
   }
@@ -74,13 +76,15 @@ export function autoSelectParser(data: any): { parser: BaseParser; validation: P
  */
 export function parseExport(data: any) {
   const result = autoSelectParser(data);
-  
+
   if (!result) {
     throw new Error('Unable to detect platform or find appropriate parser');
   }
 
-  console.log(`Detected platform: ${result.validation.platform} (confidence: ${(result.validation.confidence * 100).toFixed(1)}%)`);
-  
+  console.log(
+    `Detected platform: ${result.validation.platform} (confidence: ${(result.validation.confidence * 100).toFixed(1)}%)`
+  );
+
   if (result.validation.issues.length > 0) {
     console.warn('Validation issues:', result.validation.issues);
   }
