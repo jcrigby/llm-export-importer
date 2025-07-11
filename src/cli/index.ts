@@ -2,7 +2,7 @@
 
 /**
  * LLM Export Importer CLI Entry Point
- * 
+ *
  * Command-line interface for extracting and organizing writing content
  * from AI chat platform exports (ChatGPT, Claude, Gemini, Perplexity).
  */
@@ -21,7 +21,7 @@ program
   .description('Extract and organize writing content from AI chat platform exports')
   .version(packageInfo.version)
   .configureOutput({
-    outputError: (str, write) => write(chalk.red(str))
+    outputError: (str, write) => write(chalk.red(str)),
   });
 
 // Main import command
@@ -51,7 +51,7 @@ program
   .command('detect')
   .description('Detect the platform type of an export file')
   .argument('<file>', 'Export file path')
-  .action(async (file) => {
+  .action(async file => {
     try {
       await handleDetectCommand(file);
     } catch (error) {
@@ -65,7 +65,7 @@ program
   .command('info')
   .description('Show information about an export file')
   .argument('<file>', 'Export file path')
-  .action(async (file) => {
+  .action(async file => {
     try {
       await handleInfoCommand(file);
     } catch (error) {
@@ -80,7 +80,7 @@ program
   .description('Manage configuration settings')
   .option('--openrouter-key <key>', 'Set OpenRouter API key')
   .option('--show', 'Show current configuration')
-  .action(async (options) => {
+  .action(async options => {
     try {
       await handleConfigCommand(options);
     } catch (error) {
@@ -90,7 +90,13 @@ program
   });
 
 // Set default command to import if file is provided directly
-if (process.argv.length > 2 && !process.argv[2].startsWith('-') && process.argv[2] !== 'detect' && process.argv[2] !== 'info' && process.argv[2] !== 'config') {
+if (
+  process.argv.length > 2 &&
+  !process.argv[2].startsWith('-') &&
+  process.argv[2] !== 'detect' &&
+  process.argv[2] !== 'info' &&
+  process.argv[2] !== 'config'
+) {
   // Check if the argument looks like a file path
   const potentialFile = process.argv[2];
   if (potentialFile.endsWith('.json') || existsSync(potentialFile)) {
@@ -111,13 +117,17 @@ async function handleImportCommand(file: string, options: any) {
   // Load and parse the export file
   console.log(chalk.cyan('📁 Loading export file...'));
   const data = JSON.parse(readFileSync(file, 'utf-8'));
-  
+
   console.log(chalk.cyan('🔍 Detecting platform...'));
   const result = parseExport(data);
-  
+
   console.log(chalk.green(`✅ Successfully parsed ${result.conversations.length} conversations`));
   console.log(chalk.gray(`Platform: ${result.metadata.platform}`));
-  console.log(chalk.gray(`Date range: ${result.metadata.dateRange.earliest.split('T')[0]} to ${result.metadata.dateRange.latest.split('T')[0]}`));
+  console.log(
+    chalk.gray(
+      `Date range: ${result.metadata.dateRange.earliest.split('T')[0]} to ${result.metadata.dateRange.latest.split('T')[0]}`
+    )
+  );
 
   if (options.dryRun) {
     console.log(chalk.yellow('\n🔍 Dry run - showing what would be processed:'));
@@ -138,10 +148,10 @@ async function handleDetectCommand(file: string) {
   }
 
   console.log(chalk.cyan('🔍 Detecting platform type...'));
-  
+
   const data = JSON.parse(readFileSync(file, 'utf-8'));
   const result = parseExport(data);
-  
+
   console.log(chalk.green(`Platform: ${result.metadata.platform}`));
   console.log(chalk.gray(`Conversations: ${result.metadata.totalConversations}`));
   console.log(chalk.gray(`Export version: ${result.metadata.exportVersion}`));
@@ -153,29 +163,31 @@ async function handleInfoCommand(file: string) {
   }
 
   console.log(chalk.cyan('📊 Analyzing export file...'));
-  
+
   const data = JSON.parse(readFileSync(file, 'utf-8'));
   const result = parseExport(data);
-  
+
   console.log(chalk.green('Export Information:'));
   console.log(`Platform: ${result.metadata.platform}`);
   console.log(`Total conversations: ${result.metadata.totalConversations}`);
-  console.log(`Date range: ${result.metadata.dateRange.earliest.split('T')[0]} to ${result.metadata.dateRange.latest.split('T')[0]}`);
+  console.log(
+    `Date range: ${result.metadata.dateRange.earliest.split('T')[0]} to ${result.metadata.dateRange.latest.split('T')[0]}`
+  );
   console.log(`Export version: ${result.metadata.exportVersion || 'unknown'}`);
-  
+
   // Message statistics
   const totalMessages = result.conversations.reduce((sum, conv) => sum + conv.messages.length, 0);
   const avgMessages = Math.round(totalMessages / result.conversations.length);
-  
+
   console.log(`\nMessage Statistics:`);
   console.log(`Total messages: ${totalMessages}`);
   console.log(`Average per conversation: ${avgMessages}`);
-  
+
   // Top conversations by message count
   const topConversations = result.conversations
     .sort((a, b) => b.messages.length - a.messages.length)
     .slice(0, 5);
-    
+
   console.log(`\nTop conversations by message count:`);
   topConversations.forEach((conv, index) => {
     const title = conv.title.length > 50 ? conv.title.substring(0, 50) + '...' : conv.title;

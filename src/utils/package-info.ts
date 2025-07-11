@@ -1,6 +1,6 @@
 /**
  * Package Information Utility
- * 
+ *
  * Provides access to package.json metadata for CLI version display.
  */
 
@@ -37,8 +37,10 @@ export const packageInfo: PackageInfo = (() => {
     cachedPackageInfo = {
       name: packageJson.name || 'llm-export-importer',
       version: packageJson.version || '0.1.0',
-      description: packageJson.description || 'Extract and organize writing content from AI chat platform exports',
-      author: packageJson.author || 'jcrigby'
+      description:
+        packageJson.description ||
+        'Extract and organize writing content from AI chat platform exports',
+      author: packageJson.author || 'jcrigby',
     };
     return cachedPackageInfo;
   } catch (error) {
@@ -47,7 +49,7 @@ export const packageInfo: PackageInfo = (() => {
       name: 'llm-export-importer',
       version: '0.1.0',
       description: 'Extract and organize writing content from AI chat platform exports',
-      author: 'jcrigby'
+      author: 'jcrigby',
     };
     return cachedPackageInfo;
   }

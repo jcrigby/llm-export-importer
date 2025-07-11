@@ -1,6 +1,6 @@
 /**
  * Base Parser Interface for LLM Export Importer
- * 
+ *
  * Defines the contract for all platform-specific export parsers.
  * Each parser handles the unique export format of a specific AI platform.
  */
@@ -54,34 +54,34 @@ export abstract class BaseParser {
         isValid: true,
         platform: 'chatgpt',
         confidence: 0.9,
-        issues: []
+        issues: [],
       };
     }
-    
+
     if (data.conversations && Array.isArray(data.conversations)) {
       return {
         isValid: true,
         platform: 'claude',
         confidence: 0.9,
-        issues: []
+        issues: [],
       };
     }
-    
+
     if (data.chats && Array.isArray(data.chats)) {
       return {
         isValid: true,
         platform: 'gemini',
         confidence: 0.9,
-        issues: []
+        issues: [],
       };
     }
-    
+
     if (data.threads && Array.isArray(data.threads)) {
       return {
         isValid: true,
         platform: 'perplexity',
         confidence: 0.9,
-        issues: []
+        issues: [],
       };
     }
 
@@ -89,7 +89,7 @@ export abstract class BaseParser {
       isValid: false,
       platform: 'unknown',
       confidence: 0,
-      issues: ['Unknown export format - no recognizable structure found']
+      issues: ['Unknown export format - no recognizable structure found'],
     };
   }
 
@@ -100,7 +100,7 @@ export abstract class BaseParser {
     if (typeof timestamp === 'number') {
       return new Date(timestamp * 1000).toISOString();
     }
-    
+
     try {
       return new Date(timestamp).toISOString();
     } catch {
@@ -115,7 +115,7 @@ export abstract class BaseParser {
     if (Array.isArray(content)) {
       return content.join('\n').trim();
     }
-    
+
     return content?.trim() || '';
   }
 

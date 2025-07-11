@@ -1,6 +1,6 @@
 /**
  * Claude.ai Export Parser for LLM Export Importer
- * 
+ *
  * Handles Anthropic Claude.ai export format with its conversations array structure.
  * Claude exports are generally cleaner and more straightforward than other platforms.
  */
@@ -45,7 +45,7 @@ export class ClaudeParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Invalid JSON data']
+        issues: ['Invalid JSON data'],
       };
     }
 
@@ -55,13 +55,13 @@ export class ClaudeParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Missing or invalid conversations array']
+        issues: ['Missing or invalid conversations array'],
       };
     }
 
     // Validate conversation structure
     let validConversations = 0;
-    let totalConversations = data.conversations.length;
+    const totalConversations = data.conversations.length;
 
     for (const conv of data.conversations) {
       if (this.isValidClaudeConversation(conv)) {
@@ -76,7 +76,7 @@ export class ClaudeParser extends BaseParser {
         isValid: false,
         platform: 'claude',
         confidence: 0.2,
-        issues: ['No valid Claude conversations found', ...issues]
+        issues: ['No valid Claude conversations found', ...issues],
       };
     }
 
@@ -86,7 +86,7 @@ export class ClaudeParser extends BaseParser {
       isValid: confidence > 0.5,
       platform: 'claude',
       confidence,
-      issues: confidence < 1 ? issues : []
+      issues: confidence < 1 ? issues : [],
     };
   }
 
@@ -101,10 +101,8 @@ export class ClaudeParser extends BaseParser {
       .filter(conv => conv.messages.length > 0);
 
     // Calculate metadata
-    const timestamps = conversations.flatMap(conv => 
-      conv.messages.map(msg => msg.timestamp)
-    );
-    
+    const timestamps = conversations.flatMap(conv => conv.messages.map(msg => msg.timestamp));
+
     const sortedTimestamps = timestamps.sort();
 
     return {
@@ -113,11 +111,11 @@ export class ClaudeParser extends BaseParser {
         totalConversations: conversations.length,
         dateRange: {
           earliest: sortedTimestamps[0] || new Date().toISOString(),
-          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString()
+          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString(),
         },
         platform: 'claude',
-        exportVersion: data.export_info?.version || 'unknown'
-      }
+        exportVersion: data.export_info?.version || 'unknown',
+      },
     };
   }
 
@@ -150,9 +148,9 @@ export class ClaudeParser extends BaseParser {
       messages: conversation.messages.map(msg => ({
         role: this.normalizeRole(msg.role),
         content: this.cleanContent(msg.content),
-        timestamp: this.normalizeTimestamp(msg.timestamp)
+        timestamp: this.normalizeTimestamp(msg.timestamp),
       })),
-      platform: 'claude'
+      platform: 'claude',
     };
   }
 

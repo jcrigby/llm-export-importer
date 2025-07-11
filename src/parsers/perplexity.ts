@@ -1,6 +1,6 @@
 /**
  * Perplexity Export Parser for LLM Export Importer
- * 
+ *
  * Handles Perplexity AI export format with its threads array structure.
  * Perplexity exports include search context and citations.
  */
@@ -47,7 +47,7 @@ export class PerplexityParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Invalid JSON data']
+        issues: ['Invalid JSON data'],
       };
     }
 
@@ -57,13 +57,13 @@ export class PerplexityParser extends BaseParser {
         isValid: false,
         platform: 'unknown',
         confidence: 0,
-        issues: ['Missing or invalid threads array']
+        issues: ['Missing or invalid threads array'],
       };
     }
 
     // Validate thread structure
     let validThreads = 0;
-    let totalThreads = data.threads.length;
+    const totalThreads = data.threads.length;
 
     for (const thread of data.threads) {
       if (this.isValidPerplexityThread(thread)) {
@@ -78,7 +78,7 @@ export class PerplexityParser extends BaseParser {
         isValid: false,
         platform: 'perplexity',
         confidence: 0.2,
-        issues: ['No valid Perplexity threads found', ...issues]
+        issues: ['No valid Perplexity threads found', ...issues],
       };
     }
 
@@ -88,7 +88,7 @@ export class PerplexityParser extends BaseParser {
       isValid: confidence > 0.5,
       platform: 'perplexity',
       confidence,
-      issues: confidence < 1 ? issues : []
+      issues: confidence < 1 ? issues : [],
     };
   }
 
@@ -103,10 +103,8 @@ export class PerplexityParser extends BaseParser {
       .filter(conv => conv.messages.length > 0);
 
     // Calculate metadata
-    const timestamps = conversations.flatMap(conv => 
-      conv.messages.map(msg => msg.timestamp)
-    );
-    
+    const timestamps = conversations.flatMap(conv => conv.messages.map(msg => msg.timestamp));
+
     const sortedTimestamps = timestamps.sort();
 
     return {
@@ -115,11 +113,11 @@ export class PerplexityParser extends BaseParser {
         totalConversations: conversations.length,
         dateRange: {
           earliest: sortedTimestamps[0] || new Date().toISOString(),
-          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString()
+          latest: sortedTimestamps[sortedTimestamps.length - 1] || new Date().toISOString(),
         },
         platform: 'perplexity',
-        exportVersion: data.export_info?.version || 'unknown'
-      }
+        exportVersion: data.export_info?.version || 'unknown',
+      },
     };
   }
 
@@ -151,9 +149,9 @@ export class PerplexityParser extends BaseParser {
       messages: thread.messages.map(msg => ({
         role: this.normalizeRole(msg.role),
         content: this.cleanContent(this.processPerplexityContent(msg)),
-        timestamp: this.normalizeTimestamp(msg.created_at)
+        timestamp: this.normalizeTimestamp(msg.created_at),
       })),
-      platform: 'perplexity'
+      platform: 'perplexity',
     };
   }
 
@@ -170,14 +168,14 @@ export class PerplexityParser extends BaseParser {
 
   private processPerplexityContent(msg: PerplexityMessage): string {
     let content = msg.content;
-    
+
     // Append citations if available
     if (msg.citations && msg.citations.length > 0) {
-      content += '\n\nCitations:\n' + msg.citations.map((citation, index) => 
-        `[${index + 1}] ${citation}`
-      ).join('\n');
+      content +=
+        '\n\nCitations:\n' +
+        msg.citations.map((citation, index) => `[${index + 1}] ${citation}`).join('\n');
     }
-    
+
     return content;
   }
 }
