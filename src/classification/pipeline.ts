@@ -6,7 +6,7 @@
  * 2. AI-powered classification for nuanced writing detection and categorization
  */
 
-interface ConversationData {
+export interface ConversationData {
   id: string;
   title: string;
   messages: Array<{
@@ -17,7 +17,7 @@ interface ConversationData {
   platform: 'chatgpt' | 'claude' | 'gemini' | 'perplexity';
 }
 
-interface ClassificationResult {
+export interface ClassificationResult {
   id: string;
   isWriting: boolean;
   confidence: number;
@@ -197,7 +197,7 @@ export class AIClassifier {
       })
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
     const content = data.choices[0].message.content;
     
     return this.parseClassificationResults(content, conversations);

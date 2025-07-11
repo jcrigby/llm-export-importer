@@ -5,7 +5,7 @@
  * AI models for content classification through OpenRouter's live pricing API.
  */
 
-interface ModelInfo {
+export interface ModelInfo {
   id: string;
   name: string;
   pricing: {
@@ -18,14 +18,14 @@ interface ModelInfo {
   };
 }
 
-interface ValidationResult {
+export interface ValidationResult {
   accuracy: number;
   avgCost: number;
   suitable: boolean;
   responseTime: number;
 }
 
-interface ModelRecommendation {
+export interface ModelRecommendation {
   model: string;
   estimatedCost: number;
   accuracy: number;
@@ -43,7 +43,7 @@ export async function getModelPricing(): Promise<ModelInfo[]> {
     }
   });
   
-  const models = await response.json();
+  const models = await response.json() as { data: ModelInfo[] };
   
   return models.data
     .filter((m: ModelInfo) => m.context_length >= 4096) // Minimum for classification
@@ -125,7 +125,7 @@ Content: "${sample.content}"`
         })
       });
       
-      const data = await response.json();
+      const data = await response.json() as any;
       const scoreText = data.choices[0].message.content.trim();
       const actualScore = parseInt(scoreText.match(/\d+/)?.[0] || '0');
       
@@ -220,7 +220,7 @@ export async function confirmModelSelection(recommendation: ModelRecommendation)
     console.log(`  Accuracy: ${(recommendation.accuracy * 100).toFixed(1)}%`);
     console.log(`  Reasoning: ${recommendation.reasoning}\n`);
     
-    readline.question('Continue? [Y/n]: ', (answer) => {
+    readline.question('Continue? [Y/n]: ', (answer: string) => {
       readline.close();
       resolve(answer.toLowerCase() !== 'n' && answer.toLowerCase() !== 'no');
     });
