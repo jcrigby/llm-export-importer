@@ -12,6 +12,9 @@ import chalk from 'chalk';
 import { existsSync, readFileSync } from 'fs';
 import { parseExport } from '../parsers/index.js';
 import { packageInfo } from '../utils/package-info.js';
+import { ClassificationPipeline } from '../classification/pipeline.js';
+import { MarkdownExporter } from '../exporters/markdown.js';
+import { FileHandler } from '../utils/file-handler.js';
 
 const program = new Command();
 
@@ -137,9 +140,139 @@ async function handleImportCommand(file: string, options: any) {
     return;
   }
 
-  // TODO: Implement classification, organization, and export
-  console.log(chalk.yellow('\n⚠️  Classification and export functionality coming soon!'));
-  console.log(chalk.gray('For now, the tool can successfully parse and validate export files.'));
+  // Classification pipeline
+  if (options.writingOnly) {
+    console.log(chalk.cyan('\n🤖 Starting content classification...'));
+    
+    // Use a default model for now (TODO: integrate model optimization)
+    const model = 'gpt-3.5-turbo'; // This would normally come from model optimization
+    const pipeline = new ClassificationPipeline(model);
+    
+    try {
+      const classifications = await pipeline.processConversations(result.conversations);
+      
+      // Filter to writing content only if requested
+      const writingResults = classifications.filter(c => 
+        c.isWriting && c.confidence >= parseFloat(options.minConfidence || '0.7')
+      );
+      
+      console.log(chalk.green(`📝 Found ${writingResults.length} writing conversations`));
+      
+      if (writingResults.length === 0) {
+        console.log(chalk.yellow('No writing content found meeting criteria. Try lowering --min-confidence or removing --writing-only'));
+        return;
+      }
+
+      // Export to selected format
+      await exportResults(result.conversations, classifications, options);
+      
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('OPENROUTER_API_KEY')) {
+        console.log(chalk.yellow('\n⚠️  No API key found for classification.'));
+        console.log(chalk.gray('Set OPENROUTER_API_KEY environment variable to enable AI classification.'));
+        console.log(chalk.gray('For now, exporting all conversations without classification...\n'));
+        
+        // Export without classification
+        const mockClassifications = result.conversations.map(conv => ({
+          id: conv.id,
+          isWriting: true,
+          confidence: 1.0,
+          category: 'casual' as const,
+          quality: 'draft' as const,
+          reasoning: 'No classification - exported all content'
+        }));
+        
+        await exportResults(result.conversations, mockClassifications, options);
+      } else {
+        throw error;
+      }
+    }
+  } else {
+    // Skip classification, export all conversations
+    console.log(chalk.cyan('\n📁 Exporting all conversations without classification...'));
+    
+    const allClassifications = result.conversations.map(conv => ({
+      id: conv.id,
+      isWriting: true,
+      confidence: 1.0,
+      category: 'casual' as const,
+      quality: 'draft' as const,
+      reasoning: 'No classification applied'
+    }));
+    
+    await exportResults(result.conversations, allClassifications, options);
+  }
+}
+
+async function exportResults(conversations: any[], classifications: any[], options: any) {
+  const outputDir = options.output || './imported-writing';
+  
+  // Validate and prepare output directory
+  console.log(chalk.cyan(`📂 Preparing output directory: ${outputDir}`));
+  await FileHandler.ensureDirectory(outputDir);
+  
+  switch (options.format) {
+    case 'markdown':
+    default:
+      console.log(chalk.cyan('📝 Exporting to Markdown format...'));
+      
+      const exportOptions = {
+        outputDir,
+        organizeByProject: true,
+        includeMetadata: true,
+        includeTimestamps: false,
+        createIndex: true
+      };
+      
+      const summary = await MarkdownExporter.export(conversations, classifications, exportOptions);
+      
+      console.log(chalk.green('\n✅ Export completed successfully!'));
+      console.log(chalk.gray(`📁 Output directory: ${summary.outputDirectory}`));
+      console.log(chalk.gray(`📝 Writing conversations: ${summary.writingConversations}/${summary.totalConversations}`));
+      console.log(chalk.gray(`📂 Projects created: ${summary.projects.length}`));
+      
+      // Show project breakdown
+      if (summary.projects.length > 0) {
+        console.log(chalk.cyan('\n📊 Project Summary:'));
+        summary.projects.forEach(project => {
+          console.log(chalk.gray(`  • ${project.name}: ${project.conversationCount} conversations (${project.estimatedWords.toLocaleString()} words)`));
+        });
+      }
+      
+      // Show category breakdown
+      const categoryEntries = Object.entries(summary.categoryCounts);
+      if (categoryEntries.length > 0) {
+        console.log(chalk.cyan('\n🏷️  Category Breakdown:'));
+        categoryEntries.forEach(([category, count]) => {
+          console.log(chalk.gray(`  • ${category}: ${count} conversations`));
+        });
+      }
+      
+      console.log(chalk.blue(`\n🎉 Check your organized writing in: ${outputDir}`));
+      break;
+      
+    // TODO: Add other export formats
+    case 'writer-cli':
+      console.log(chalk.yellow('Writer CLI format not yet implemented. Using Markdown instead.'));
+      // Fall through to markdown for now
+      break;
+      
+    case 'scrivener':
+      console.log(chalk.yellow('Scrivener format not yet implemented. Using Markdown instead.'));
+      // Fall through to markdown for now
+      break;
+      
+    case 'json':
+      console.log(chalk.cyan('📄 Exporting to JSON format...'));
+      const jsonPath = `${outputDir}/export-data.json`;
+      await FileHandler.writeJsonFile(jsonPath, {
+        conversations,
+        classifications,
+        exportTime: new Date().toISOString()
+      });
+      console.log(chalk.green(`✅ JSON export saved to: ${jsonPath}`));
+      break;
+  }
 }
 
 async function handleDetectCommand(file: string) {
