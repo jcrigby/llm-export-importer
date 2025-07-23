@@ -5,8 +5,7 @@
  * Perplexity exports include search context and citations.
  */
 
-import { BaseParser, ParseResult, ParserValidationResult } from './base.js';
-import { ConversationData } from '../classification/pipeline.js';
+import { BaseParser, ParseResult, ParserValidationResult, ConversationData } from './base.js';
 
 interface PerplexityMessage {
   role: 'user' | 'assistant';
@@ -178,4 +177,11 @@ export class PerplexityParser extends BaseParser {
 
     return content;
   }
+}
+
+// Export a simple parsing function for the CLI
+export function parsePerplexityExport(data: any): ConversationData[] {
+  const parser = new PerplexityParser();
+  const result = parser.parse(data);
+  return result.conversations;
 }

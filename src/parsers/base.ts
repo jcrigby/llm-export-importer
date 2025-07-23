@@ -5,7 +5,16 @@
  * Each parser handles the unique export format of a specific AI platform.
  */
 
-import { ConversationData } from '../classification/pipeline.js';
+export interface ConversationData {
+  id: string;
+  title: string;
+  messages: Array<{
+    role: 'user' | 'assistant' | 'human' | 'model';
+    content: string;
+    timestamp: string;
+  }>;
+  platform?: string;
+}
 
 export interface ParseResult {
   conversations: ConversationData[];

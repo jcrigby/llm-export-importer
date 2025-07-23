@@ -13,6 +13,13 @@ export interface FileWriteOptions {
   overwrite?: boolean;
   createDirectories?: boolean;
   backupExisting?: boolean;
+  handleDuplicates?: 'error' | 'skip' | 'rename';
+}
+
+export interface FileWriteResult {
+  path: string;
+  status: 'written' | 'skipped' | 'renamed';
+  originalPath?: string;
 }
 
 export interface DirectoryInfo {
@@ -48,7 +55,7 @@ export class FileHandler {
     filePath: string, 
     content: string, 
     options: FileWriteOptions = {}
-  ): Promise<void> {
+  ): Promise<FileWriteResult> {
     const resolvedPath = resolve(filePath);
     const dir = dirname(resolvedPath);
     
@@ -59,8 +66,29 @@ export class FileHandler {
 
     // Check if file exists and handle accordingly
     if (existsSync(resolvedPath)) {
+      // Check if content is identical - if so, skip writing
+      try {
+        const existingContent = await fs.readFile(resolvedPath, 'utf-8');
+        if (existingContent === content) {
+          // Content is identical, skip writing
+          return { path: resolvedPath, status: 'skipped' };
+        }
+      } catch {
+        // If we can't read the existing file, proceed with error handling
+      }
+
       if (!options.overwrite) {
-        throw new Error(`File already exists: ${resolvedPath}`);
+        const duplicateStrategy = options.handleDuplicates || 'error';
+        
+        if (duplicateStrategy === 'skip') {
+          return { path: resolvedPath, status: 'skipped' };
+        } else if (duplicateStrategy === 'rename') {
+          const newPath = await this.getDuplicateFilename(resolvedPath);
+          await fs.writeFile(newPath, content, 'utf-8');
+          return { path: newPath, status: 'renamed', originalPath: resolvedPath };
+        } else {
+          throw new Error(`File already exists: ${resolvedPath}`);
+        }
       }
       
       if (options.backupExisting) {
@@ -69,6 +97,7 @@ export class FileHandler {
     }
 
     await fs.writeFile(resolvedPath, content, 'utf-8');
+    return { path: resolvedPath, status: 'written' };
   }
 
   /**
@@ -110,6 +139,23 @@ export class FileHandler {
     }
     
     return filename;
+  }
+
+  /**
+   * Creates a duplicate filename with parenthesized number (e.g., "file (1).md")
+   */
+  static async getDuplicateFilename(originalPath: string): Promise<string> {
+    const ext = extname(originalPath);
+    const baseName = originalPath.slice(0, -ext.length);
+    let counter = 1;
+    let newPath: string;
+    
+    do {
+      newPath = `${baseName} (${counter})${ext}`;
+      counter++;
+    } while (existsSync(newPath));
+    
+    return newPath;
   }
 
   /**
@@ -181,9 +227,9 @@ export class FileHandler {
     filePath: string, 
     data: any, 
     options: FileWriteOptions = {}
-  ): Promise<void> {
+  ): Promise<FileWriteResult> {
     const content = JSON.stringify(data, null, 2);
-    await this.writeFile(filePath, content, options);
+    return await this.writeFile(filePath, content, options);
   }
 
   /**
