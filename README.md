@@ -1,131 +1,156 @@
 # LLM Export Importer
 
-Extract and organize writing content from AI chat platform exports (ChatGPT, Claude, Gemini, Perplexity).
+A straightforward tool to organize your AI chat exports from ChatGPT, Claude, Gemini, and Perplexity into searchable markdown files.
 
-## 🎯 Problem
-
-Your valuable writing work is trapped in massive JSON export files from AI chat platforms. This tool rescues that content by:
-
-- **Parsing** multi-format exports from all major AI platforms
-- **Classifying** content to identify actual writing vs code/chat/etc
-- **Organizing** related conversations into coherent writing projects  
-- **Exporting** to useful formats for continued work
-
-## ✨ Features
-
-- **Multi-Platform Support**: ChatGPT, Claude.ai, Gemini, Perplexity
-- **Intelligent Classification**: Hybrid rule-based + AI-powered content detection
-- **Cost Optimization**: Automatic selection of cheapest effective AI models
-- **Privacy-First**: All processing happens locally on your machine
-- **Multiple Output Formats**: Writer CLI, Markdown, Scrivener, JSON
-
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install
 npm install -g llm-export-importer
 
-# Configure API access (for AI classification)
-llm-import config --openrouter-key your-key-here
+# List all your chats in date order
+llm-export list your-export.json
 
-# Process an export
-llm-import --file chatgpt-export.json --interactive
+# Export all chats to markdown files (perfect for git grep)
+llm-export export your-export.json
 
-# Or process multiple files
-llm-import --dir ~/Downloads/ai-exports/ --auto-detect
+# Auto-organize chats into projects
+llm-export organize your-export.json
+
+# Do everything at once
+llm-export full your-export.json
 ```
 
-## 📊 How It Works
+## Core Features
 
-1. **Parse Export**: Auto-detect platform format and extract conversations
-2. **Pre-Filter**: Fast rule-based elimination of obvious non-writing content
-3. **AI Classification**: Smart detection of writing content using cost-optimized models
-4. **Organize**: Group related conversations into projects by theme/topic
-5. **Export**: Generate organized output in your preferred format
-
-## 💰 Cost Optimization
-
-The tool automatically finds the cheapest AI model that meets accuracy requirements:
-
-```
-🔍 Testing models for optimal cost/accuracy...
-   deepseek/deepseek-chat: 87% accuracy, $0.28 total cost ✅
-   qwen/qwen-2.5-72b: 91% accuracy, $0.40 total cost
-   gpt-3.5-turbo: 94% accuracy, $3.00 total cost
-```
-
-Typical costs: **<$0.50** for processing 50,000 conversations
-
-## 🔒 Privacy & Security
-
-- **Local Processing**: Your content never leaves your machine
-- **API Separation**: Classification uses dedicated API keys
-- **No Logging**: Content is never logged or cached
-- **Secure Cleanup**: Automatic removal of temporary files
-
-## 📁 Output Formats
-
-### Writer CLI Format
-```
-my-novel/
-├── .claude/
-│   ├── config.json
-│   ├── characters.json
-│   └── timeline.json
-├── chapters/
-│   ├── 01-opening.md
-│   └── 02-conflict.md
-└── research/
-    └── world-building.md
-```
-
-### Markdown Collection
-```
-imported-writing/
-├── fiction-project/
-│   ├── README.md
-│   ├── conversations/
-│   └── timeline.md
-└── blog-posts/
-    └── drafts/
-```
-
-## 🛠️ Development
+### 1. List Chats in Date Order
+See all your conversations sorted by date, just like in the web interface:
 
 ```bash
-# Clone the repository
-git clone https://github.com/jcrigby/llm-export-importer.git
-cd llm-export-importer
+llm-export list chatgpt-export.json
 
-# Install dependencies
-npm install
+# Save to file
+llm-export list chatgpt-export.json -o chat-list.md
 
-# Run tests
-npm test
-
-# Build
-npm run build
+# Export as CSV for spreadsheets
+llm-export list chatgpt-export.json -f csv -o chats.csv
 ```
 
-## 📖 Documentation
+### 2. Export to Individual Markdown Files
+Each chat becomes its own markdown file, perfect for version control and searching:
 
-- [Product Requirements Document](docs/PRD.md)
-- [Technical Specification](CLAUDE.md)
-- [Platform Export Formats](docs/platform-formats.md)
-- [Classification System](docs/classification.md)
+```bash
+llm-export export claude-export.json -o ./my-chats
 
-## 🤝 Contributing
+# Extract code blocks as separate files
+llm-export export claude-export.json -o ./my-chats --artifacts
 
-Contributions welcome! Please read our [Contributing Guide](CONTRIBUTING.md) first.
+# Include metadata in exports
+llm-export export claude-export.json -o ./my-chats --metadata
+```
 
-## 📄 License
+After export, you can:
+- `git init && git add .` to version control your chats
+- `git grep "search term"` to search through all conversations
+- Open any chat in your favorite markdown editor
 
-MIT License - see [LICENSE](LICENSE) for details
+### 3. Organize into Projects
+Automatically group related conversations:
 
-## 🙏 Acknowledgments
+```bash
+llm-export organize gemini-export.json -o ./organized-chats
 
-Built to solve the real problem of fragmented writing work across AI chat platforms. Special thanks to the writing community for feedback and use case examples.
+# Adjust project detection sensitivity
+llm-export organize gemini-export.json --threshold 5 --min 3
+```
 
----
+### 4. Full Export
+Do everything in one command:
 
-**Made for writers, by writers** 📝
+```bash
+llm-export full perplexity-export.json -o ./my-archive
+```
+
+This will:
+1. Create a chat list summary
+2. Export all chats as individual markdown files
+3. Extract code artifacts
+4. Auto-organize into projects
+5. Set up everything for git
+
+## Output Structure
+
+```
+exported-chats/
+├── chat-list.md                    # Summary of all chats
+├── 2024-01-15-novel-chapter-1.md   # Individual chat files
+├── 2024-01-16-character-dev.md     # Named by date + title
+├── artifacts/                      # Extracted code blocks
+│   ├── novel-chapter-1-msg2-1.py
+│   └── character-dev-msg5-1.js
+└── projects/                       # Auto-detected projects
+    ├── Novel Writing Project/
+    │   ├── README.md
+    │   ├── project.json
+    │   └── conversations.md
+    └── Code Tutorial Project/
+        ├── README.md
+        ├── project.json
+        └── conversations.md
+```
+
+## File Naming
+
+- Chat files: `YYYY-MM-DD-sanitized-title.md`
+- Artifacts: `{chat-title}-msg{number}-{index}.{extension}`
+- Projects: Auto-named based on common keywords
+
+## Supported Platforms
+
+- ✅ ChatGPT (OpenAI)
+- ✅ Claude (Anthropic)
+- ✅ Gemini (Google)
+- ✅ Perplexity
+
+The tool auto-detects the export format.
+
+## Tips
+
+1. **For Searching**: After export, use `git grep` for powerful searching:
+   ```bash
+   git grep -i "character name"
+   git grep "function.*async"
+   ```
+
+2. **For Organization**: The auto-project detection looks for common keywords. Chats about similar topics will be grouped together.
+
+3. **For Artifacts**: Code blocks are extracted with proper file extensions based on the language specified in markdown.
+
+4. **For Privacy**: Everything runs locally. Your chats never leave your computer.
+
+## Examples
+
+```bash
+# Quick exploration of an export
+llm-export list my-export.json | less
+
+# Full archival with everything
+llm-export full my-export.json -o ~/Documents/ai-chats-archive
+
+# Just the chats, no extras
+llm-export export my-export.json -o ./simple-export
+
+# Focus on organization
+llm-export organize my-export.json --threshold 2 --min 2
+```
+
+## Next Steps
+
+After organizing your chats:
+1. Initialize git: `cd exported-chats && git init`
+2. Commit everything: `git add . && git commit -m "Initial chat archive"`
+3. Search freely: `git grep "any topic"`
+4. Track changes: Make edits and use git to track them
+5. Share projects: Each project folder is self-contained
+
+Enjoy your organized chat history!

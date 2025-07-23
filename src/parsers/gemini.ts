@@ -5,8 +5,7 @@
  * Note: Gemini export format may vary as the platform evolves.
  */
 
-import { BaseParser, ParseResult, ParserValidationResult } from './base.js';
-import { ConversationData } from '../classification/pipeline.js';
+import { BaseParser, ParseResult, ParserValidationResult, ConversationData } from './base.js';
 
 interface GeminiMessage {
   author: 'user' | 'model';
@@ -161,4 +160,11 @@ export class GeminiParser extends BaseParser {
         return 'user';
     }
   }
+}
+
+// Export a simple parsing function for the CLI
+export function parseGeminiExport(data: any): ConversationData[] {
+  const parser = new GeminiParser();
+  const result = parser.parse(data);
+  return result.conversations;
 }

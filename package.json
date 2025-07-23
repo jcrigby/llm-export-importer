@@ -4,7 +4,8 @@
   "description": "Extract and organize writing content from AI chat platform exports",
   "main": "dist/index.js",
   "bin": {
-    "llm-import": "./dist/cli/index.js"
+    "llm-import": "./dist/cli/index.js",
+    "llm-export": "./dist/cli/simple.js"
   },
   "scripts": {
     "build": "tsc",
@@ -45,12 +46,14 @@
     "inquirer": "^9.2.12",
     "ora": "^7.0.1",
     "yaml": "^2.3.4",
+    "yauzl": "^3.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
+    "@types/yauzl": "^2.10.3",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "eslint": "^8.55.0",
