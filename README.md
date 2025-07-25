@@ -1,6 +1,16 @@
 # LLM Export Importer
 
-A straightforward tool to organize your AI chat exports from ChatGPT, Claude, Gemini, and Perplexity into searchable markdown files.
+A powerful tool to extract, organize, and version-control your AI chat exports from ChatGPT, Claude, Gemini, and Perplexity. Transform chaotic JSON exports into organized, searchable markdown files with full git integration.
+
+## ✨ Key Features
+
+- **🔍 Full-text search** with `git grep` across all conversations
+- **📁 Smart organization** into projects with auto-detection
+- **🎯 Artifact extraction** for code blocks, documents, and JSON data
+- **🔧 Git integration** with automatic repository setup and commits
+- **📝 Rich content support** including Claude artifacts and embedded JSON
+- **🔄 Incremental exports** that append to existing archives
+- **🚀 Zero configuration** - just point and export
 
 ## Quick Start
 
@@ -11,146 +21,227 @@ npm install -g llm-export-importer
 # List all your chats in date order
 llm-export list your-export.json
 
-# Export all chats to markdown files (perfect for git grep)
-llm-export export your-export.json
+# Export with full features and git setup
+llm-export full your-export.json --git --process-artifacts -j pretty
 
-# Auto-organize chats into projects
-llm-export organize your-export.json
+# Simple export to markdown files
+llm-export export your-export.json -o ./my-chats
 
-# Do everything at once
-llm-export full your-export.json
+# Auto-organize into projects
+llm-export organize your-export.json -o ./organized
 ```
 
-## Core Features
+## Core Commands
 
-### 1. List Chats in Date Order
-See all your conversations sorted by date, just like in the web interface:
+### 1. 📋 List Chats
+See all your conversations sorted by date:
 
 ```bash
 llm-export list chatgpt-export.json
 
-# Save to file
+# Save to file or export as CSV
 llm-export list chatgpt-export.json -o chat-list.md
-
-# Export as CSV for spreadsheets
 llm-export list chatgpt-export.json -f csv -o chats.csv
 ```
 
-### 2. Export to Individual Markdown Files
-Each chat becomes its own markdown file, perfect for version control and searching:
+### 2. 📤 Export Chats
+Convert chats to individual markdown files:
 
 ```bash
+# Basic export
 llm-export export claude-export.json -o ./my-chats
 
-# Extract code blocks as separate files
-llm-export export claude-export.json -o ./my-chats --artifacts
+# Full-featured export with git setup
+llm-export export claude-export.json -o ./my-chats \
+  --artifacts --metadata --process-artifacts \
+  -j pretty --git
 
-# Include metadata in exports
-llm-export export claude-export.json -o ./my-chats --metadata
+# Process ZIP files
+llm-export export claude-export.zip -o ./my-chats
 ```
 
-After export, you can:
-- `git init && git add .` to version control your chats
-- `git grep "search term"` to search through all conversations
-- Open any chat in your favorite markdown editor
+**New Features:**
+- **`--process-artifacts`**: Extracts Claude documents and artifacts as separate files
+- **`-j pretty`**: Pretty-prints JSON with proper formatting
+- **`--git`**: Automatically initializes git repo and commits files
+- **ZIP support**: Handles both JSON and ZIP export files
 
-### 3. Organize into Projects
+### 3. 🗂️ Organize Projects
 Automatically group related conversations:
 
 ```bash
-llm-export organize gemini-export.json -o ./organized-chats
+llm-export organize gemini-export.json -o ./organized-chats --git
 
-# Adjust project detection sensitivity
+# Adjust sensitivity
 llm-export organize gemini-export.json --threshold 5 --min 3
 ```
 
-### 4. Full Export
+### 4. 🚀 Full Export
 Do everything in one command:
 
 ```bash
-llm-export full perplexity-export.json -o ./my-archive
+llm-export full perplexity-export.json -o ./my-archive \
+  --git --process-artifacts -j pretty
 ```
 
-This will:
-1. Create a chat list summary
-2. Export all chats as individual markdown files
-3. Extract code artifacts
-4. Auto-organize into projects
-5. Set up everything for git
+**What it does:**
+1. ✅ Creates cumulative chat list (appends to existing)
+2. ✅ Exports all chats as individual markdown files  
+3. ✅ Extracts and processes all artifacts
+4. ✅ Auto-organizes into projects
+5. ✅ Initializes git and commits everything
+6. ✅ Sets up for instant searching with `git grep`
 
-## Output Structure
+### 5. 🔧 Extract JSON (Bonus)
+Process existing markdown files to extract JSON:
+
+```bash
+llm-export extract-json chat.md
+llm-export extract-json ./exported-chats/
+```
+
+## 📁 Output Structure
 
 ```
 exported-chats/
-├── chat-list.md                    # Summary of all chats
-├── 2024-01-15-novel-chapter-1.md   # Individual chat files
-├── 2024-01-16-character-dev.md     # Named by date + title
-├── artifacts/                      # Extracted code blocks
-│   ├── novel-chapter-1-msg2-1.py
-│   └── character-dev-msg5-1.js
+├── .git/                           # Git repository (with --git)
+├── chat-list.md                    # Cumulative chat history
+├── 2025-01-15-novel-chapter-1.md   # Individual chat files
+├── 2025-01-16-character-dev.md     # Named by date + title
+├── artifacts/                      # Extracted content
+│   ├── novel-chapter-1-artifact-outline.md      # Claude documents
+│   ├── novel-chapter-1-msg2-1.json             # Pretty JSON data
+│   ├── character-dev-msg5-1.py                 # Code blocks
+│   └── character-dev-update-2-1-1.md           # Update content
 └── projects/                       # Auto-detected projects
     ├── Novel Writing Project/
-    │   ├── README.md
-    │   ├── project.json
-    │   └── conversations.md
+    │   ├── README.md               # Project summary
+    │   └── conversations.md        # Linked conversations
     └── Code Tutorial Project/
         ├── README.md
-        ├── project.json
         └── conversations.md
 ```
 
-## File Naming
+## 🏷️ File Naming
 
-- Chat files: `YYYY-MM-DD-sanitized-title.md`
-- Artifacts: `{chat-title}-msg{number}-{index}.{extension}`
-- Projects: Auto-named based on common keywords
+- **Chat files**: `YYYY-MM-DD-sanitized-title.md`
+- **Claude artifacts**: `{chat-title}-artifact-{document-name}.md`
+- **JSON data**: `{chat-title}-msg{number}-{index}.json`
+- **Code blocks**: `{chat-title}-msg{number}-{index}.{extension}`
+- **Updates**: `{chat-title}-update-{msg}-{item}-{index}.md`
 
-## Supported Platforms
+## 🔌 Supported Platforms
 
-- ✅ ChatGPT (OpenAI)
-- ✅ Claude (Anthropic)
-- ✅ Gemini (Google)
-- ✅ Perplexity
+- ✅ **ChatGPT** (OpenAI) - JSON and ZIP exports
+- ✅ **Claude** (Anthropic) - JSON and ZIP exports with full artifact support
+- ✅ **Gemini** (Google) - JSON exports
+- ✅ **Perplexity** - JSON exports
 
-The tool auto-detects the export format.
+The tool auto-detects the export format and handles both single JSON files and ZIP archives.
 
-## Tips
+## 💡 Advanced Features
 
-1. **For Searching**: After export, use `git grep` for powerful searching:
+### Git Integration
+With `--git` flag, the tool will:
+- ✅ Check for uncommitted changes before starting
+- ✅ Initialize git repository if needed
+- ✅ Commit all exported files with descriptive messages
+- ✅ Allow incremental exports with proper conflict detection
+
+### Claude Artifact Processing
+With `--process-artifacts`, Claude exports get special treatment:
+- 📄 **Documents**: Full content extracted as markdown files
+- 🔄 **Updates**: Document updates saved as separate files  
+- 📊 **JSON**: All embedded JSON pretty-printed and saved
+- 🔗 **Links**: References maintained between files
+
+### Smart JSON Handling
+- **Pretty printing**: `-j pretty` formats all JSON with proper indentation
+- **Artifact detection**: Distinguishes between Claude artifacts and generic JSON
+- **Full expansion**: No more truncated content in artifact files
+
+## 🔍 Power User Tips
+
+1. **Searching across everything**:
    ```bash
-   git grep -i "character name"
-   git grep "function.*async"
+   cd exported-chats
+   git grep -i "character development"    # Case-insensitive
+   git grep -B5 -A5 "function.*async"    # With context
+   git grep --name-only "novel outline"  # Just filenames
    ```
 
-2. **For Organization**: The auto-project detection looks for common keywords. Chats about similar topics will be grouped together.
+2. **Incremental workflows**:
+   ```bash
+   # First export
+   llm-export full export1.json -o ./archive --git
 
-3. **For Artifacts**: Code blocks are extracted with proper file extensions based on the language specified in markdown.
+   # Later exports (appends and commits)
+   llm-export full export2.json -o ./archive --git
+   ```
 
-4. **For Privacy**: Everything runs locally. Your chats never leave your computer.
+3. **Focus on specific content**:
+   ```bash
+   # Only process artifacts
+   llm-export export export.json --process-artifacts -j pretty
 
-## Examples
+   # Show embedded JSON without extraction
+   llm-export show-json export.json
+   ```
+
+## 🚀 Examples
 
 ```bash
-# Quick exploration of an export
-llm-export list my-export.json | less
+# Quick exploration
+llm-export list my-export.json | head -20
 
-# Full archival with everything
-llm-export full my-export.json -o ~/Documents/ai-chats-archive
+# Full archival with git
+llm-export full my-export.json -o ~/ai-chats --git --process-artifacts -j pretty
 
-# Just the chats, no extras
-llm-export export my-export.json -o ./simple-export
+# Focus on Claude artifacts
+llm-export export claude-export.json --process-artifacts -j pretty
 
-# Focus on organization
-llm-export organize my-export.json --threshold 2 --min 2
+# Organize existing collection
+llm-export organize my-export.json --git --threshold 2
+
+# Extract JSON from existing files
+llm-export extract-json ./exported-chats/
 ```
 
-## Next Steps
+## 🎯 Workflow Examples
 
-After organizing your chats:
-1. Initialize git: `cd exported-chats && git init`
-2. Commit everything: `git add . && git commit -m "Initial chat archive"`
-3. Search freely: `git grep "any topic"`
-4. Track changes: Make edits and use git to track them
-5. Share projects: Each project folder is self-contained
+### For Writers
+```bash
+# Export your writing conversations with full artifact support
+llm-export full claude-writing-export.json -o ./writing-archive \
+  --git --process-artifacts -j pretty
 
-Enjoy your organized chat history!
+# Search for character mentions across all conversations
+cd writing-archive && git grep -i "protagonist.*chris"
+```
+
+### For Developers  
+```bash
+# Export code-focused conversations
+llm-export export chatgpt-code-export.json --artifacts --git
+
+# Find all Python code blocks
+cd exported-chats && find artifacts/ -name "*.py" | xargs grep "def "
+```
+
+### For Researchers
+```bash
+# Organize research conversations by topic
+llm-export organize research-export.json --threshold 3 --min 2 --git
+
+# Track research evolution over time
+cd exported-chats && git log --oneline --name-status
+```
+
+## 🔒 Privacy & Security
+
+- ✅ **100% local processing** - Your data never leaves your computer
+- ✅ **No cloud dependencies** - All processing happens offline  
+- ✅ **Git-ready output** - Version control your conversations safely
+- ✅ **Structured extraction** - Easy to audit what's exported
+
+Transform your AI conversation chaos into organized, searchable knowledge! 🎉
