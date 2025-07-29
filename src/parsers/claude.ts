@@ -258,7 +258,34 @@ export class ClaudeParser extends BaseParser {
   }
 
   private extractNewMessageContent(msg: NewClaudeMessage): string {
-    // Use the text field as primary content, fallback to content array
+    // Check if content array has tool_use artifacts - if so, prioritize it
+    const hasToolUseArtifacts = msg.content && msg.content.some(item => 
+      (item as any).type === 'tool_use' && (item as any).name === 'artifacts'
+    );
+    
+    if (hasToolUseArtifacts) {
+      // Extract all content from the content array, including actual tool_use content
+      const contentParts = msg.content
+        .map(item => {
+          if (item.type === 'text') {
+            return item.text;
+          } else if ((item as any).type === 'tool_use' && (item as any).name === 'artifacts') {
+            // Extract the actual artifact content instead of placeholder
+            const toolUseItem = item as any;
+            if (toolUseItem.input && toolUseItem.input.content) {
+              const title = toolUseItem.input.title || 'Artifact';
+              return `# ${title}\n\n${toolUseItem.input.content}`;
+            }
+            return '[ARTIFACT_PLACEHOLDER]';
+          }
+          return '';
+        })
+        .filter(text => text.length > 0);
+      
+      return this.cleanContent(contentParts.join('\n\n'));
+    }
+    
+    // Otherwise use the text field as primary content, fallback to content array
     if (msg.text && msg.text.trim().length > 0) {
       return this.cleanContent(msg.text);
     }
