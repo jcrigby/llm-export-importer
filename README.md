@@ -1,6 +1,6 @@
 # LLM Export Importer
 
-A powerful tool to extract, organize, and version-control your AI chat exports from ChatGPT, Claude, Gemini, and Perplexity. Transform chaotic JSON exports into organized, searchable markdown files with full git integration.
+A powerful tool to extract, organize, and version-control your AI chat exports from ChatGPT and Claude. Transform chaotic JSON exports into organized, searchable markdown files with full git integration and complete artifact extraction.
 
 ## ✨ Key Features
 
@@ -8,7 +8,7 @@ A powerful tool to extract, organize, and version-control your AI chat exports f
 - **📁 Smart organization** into projects with auto-detection
 - **🎯 Artifact extraction** for code blocks, documents, and JSON data
 - **🔧 Git integration** with automatic repository setup and commits
-- **📝 Rich content support** including Claude artifacts and embedded JSON
+- **📝 Rich content support** including complete Claude artifact extraction with full content
 - **🔄 Incremental exports** that append to existing archives
 - **🚀 Zero configuration** - just point and export
 
@@ -70,17 +70,17 @@ llm-export export claude-export.zip -o ./my-chats
 Automatically group related conversations:
 
 ```bash
-llm-export organize gemini-export.json -o ./organized-chats --git
+llm-export organize claude-export.json -o ./organized-chats --git
 
 # Adjust sensitivity
-llm-export organize gemini-export.json --threshold 5 --min 3
+llm-export organize claude-export.json --threshold 5 --min 3
 ```
 
 ### 4. 🚀 Full Export
 Do everything in one command:
 
 ```bash
-llm-export full perplexity-export.json -o ./my-archive \
+llm-export full claude-export.json -o ./my-archive \
   --git --process-artifacts -j pretty
 ```
 
@@ -132,12 +132,19 @@ exported-chats/
 
 ## 🔌 Supported Platforms
 
-- ✅ **ChatGPT** (OpenAI) - JSON and ZIP exports
-- ✅ **Claude** (Anthropic) - JSON and ZIP exports with full artifact support
-- ✅ **Gemini** (Google) - JSON exports
-- ✅ **Perplexity** - JSON exports
+- ✅ **ChatGPT** (OpenAI) - JSON and ZIP exports with full conversation history
+- ✅ **Claude** (Anthropic) - JSON and ZIP exports with **complete artifact extraction**
+  - Full tool_use artifact content (no more placeholder text!)
+  - Document creation, updates, and modifications
+  - Code blocks, data files, and structured content
+- 🚧 **Gemini** (Google) - Basic JSON support (future: enhanced artifact extraction)
+- 🚧 **Perplexity** - Basic JSON support (future: search context and citations)
 
 The tool auto-detects the export format and handles both single JSON files and ZIP archives.
+
+### Current Status
+- **Production ready**: ChatGPT and Claude with full feature support
+- **Future work**: Enhanced Gemini and Perplexity support with platform-specific features
 
 ## 💡 Advanced Features
 
@@ -150,15 +157,17 @@ With `--git` flag, the tool will:
 
 ### Claude Artifact Processing
 With `--process-artifacts`, Claude exports get special treatment:
-- 📄 **Documents**: Full content extracted as markdown files
-- 🔄 **Updates**: Document updates saved as separate files  
+- 📄 **Documents**: Full content extracted from tool_use artifacts (no placeholders!)
+- 🔄 **Updates**: Document updates saved as separate files with complete content
 - 📊 **JSON**: All embedded JSON pretty-printed and saved
 - 🔗 **Links**: References maintained between files
+- ✨ **Complete extraction**: Over 51K+ characters of content vs previous placeholder text
 
 ### Smart JSON Handling
 - **Pretty printing**: `-j pretty` formats all JSON with proper indentation
 - **Artifact detection**: Distinguishes between Claude artifacts and generic JSON
-- **Full expansion**: No more truncated content in artifact files
+- **Full expansion**: Complete tool_use artifact extraction (recently fixed!)
+- **No more placeholders**: Extracts actual content instead of "This block is not supported" messages
 
 ## 🔍 Power User Tips
 
