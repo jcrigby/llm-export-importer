@@ -14,6 +14,16 @@ A powerful tool to extract, organize, and version-control your AI chat exports f
 
 ## Installation
 
+### Requirements
+- Node.js 18.0.0 or higher
+- npm 7.0.0 or higher
+
+```bash
+# Check your versions
+node --version  # Should be v18.0.0 or higher
+npm --version   # Should be 7.0.0 or higher
+```
+
 ### Option 1: Install from GitHub (Recommended)
 ```bash
 # Install directly from GitHub
