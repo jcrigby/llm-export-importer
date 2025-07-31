@@ -12,12 +12,40 @@ A powerful tool to extract, organize, and version-control your AI chat exports f
 - **🔄 Incremental exports** that append to existing archives
 - **🚀 Zero configuration** - just point and export
 
+## Installation
+
+### Option 1: Install from GitHub (Recommended)
+```bash
+# Install directly from GitHub
+npm install -g github:jcrigby/llm-export-importer
+
+# Or add to your project
+npm install github:jcrigby/llm-export-importer
+```
+
+### Option 2: Clone and Install Locally
+```bash
+# Clone the repository
+git clone https://github.com/jcrigby/llm-export-importer.git
+cd llm-export-importer
+
+# Install dependencies and build
+npm install
+npm run build
+
+# Install globally from local build
+npm install -g .
+```
+
+### Option 3: NPM (Coming Soon)
+```bash
+# Will be available after npm publish
+npm install -g llm-export-importer
+```
+
 ## Quick Start
 
 ```bash
-# Install
-npm install -g llm-export-importer
-
 # List all your chats in date order
 llm-export list your-export.json
 

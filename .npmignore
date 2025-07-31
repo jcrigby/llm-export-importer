@@ -1,0 +1,57 @@
+# Source files (users don't need these since we ship dist/)
+src/
+*.ts
+!dist/**/*.d.ts
+
+# Development files
+.eslintrc.json
+.prettierrc.json
+.prettierignore
+tsconfig.json
+jest.config.js
+
+# Test files
+tests/
+coverage/
+*.test.ts
+*.spec.ts
+
+# Documentation (they can get from GitHub)
+docs/
+*.md
+!README.md
+!LICENSE
+
+# Git and IDE
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Environment and config
+.env
+.env.*
+config/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.log
+
+# User data
+exports/
+imported-*/
+output/
+
+# Build artifacts we don't want
+*.tsbuildinfo
+.nyc_output/
+
+# Claude specific
+.claude/
+CLAUDE.md
