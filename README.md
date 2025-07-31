@@ -80,9 +80,9 @@ Before using this tool, you'll need to download your conversation history from y
 ## Quick Start
 
 ```bash
-# Works with both ZIP files and extracted JSON
+# Works with ZIP files from AI platforms
 llm-export list claude-export.zip
-llm-export list chatgpt-conversations.json
+llm-export list chatgpt-export.zip
 
 # Export with full features and git setup
 llm-export full claude-export.zip --git --process-artifacts -j pretty
@@ -91,7 +91,7 @@ llm-export full claude-export.zip --git --process-artifacts -j pretty
 llm-export export chatgpt-export.zip -o ./my-chats
 
 # Auto-organize into projects
-llm-export organize your-export.json -o ./organized
+llm-export organize claude-export.zip -o ./organized
 ```
 
 ## Core Commands
@@ -100,11 +100,11 @@ llm-export organize your-export.json -o ./organized
 See all your conversations sorted by date:
 
 ```bash
-llm-export list chatgpt-export.json
+llm-export list chatgpt-export.zip
 
 # Save to file or export as CSV
-llm-export list chatgpt-export.json -o chat-list.md
-llm-export list chatgpt-export.json -f csv -o chats.csv
+llm-export list claude-export.zip -o chat-list.md
+llm-export list chatgpt-export.zip -f csv -o chats.csv
 ```
 
 ### 2. 📤 Export Chats
@@ -112,15 +112,15 @@ Convert chats to individual markdown files:
 
 ```bash
 # Basic export
-llm-export export claude-export.json -o ./my-chats
+llm-export export claude-export.zip -o ./my-chats
 
 # Full-featured export with git setup
-llm-export export claude-export.json -o ./my-chats \
+llm-export export claude-export.zip -o ./my-chats \
   --artifacts --metadata --process-artifacts \
   -j pretty --git
 
-# Process ZIP files
-llm-export export claude-export.zip -o ./my-chats
+# Works with both ZIP and JSON files
+llm-export export conversations.json -o ./my-chats
 ```
 
 **New Features:**
@@ -133,10 +133,10 @@ llm-export export claude-export.zip -o ./my-chats
 Group conversations by keyword similarity:
 
 ```bash
-llm-export organize claude-export.json -o ./organized-chats --git
+llm-export organize claude-export.zip -o ./organized-chats --git
 
 # Adjust clustering sensitivity (higher = stricter matching)
-llm-export organize claude-export.json --threshold 5 --min 3
+llm-export organize chatgpt-export.zip --threshold 5 --min 3
 ```
 
 **Note**: Organization is basic keyword clustering - it finds chats sharing 3+ common words and groups them. Results may need manual cleanup.
@@ -266,16 +266,16 @@ With `--process-artifacts`, Claude exports get special treatment:
 
 ```bash
 # Quick exploration
-llm-export list my-export.json | head -20
+llm-export list claude-export.zip | head -20
 
 # Full archival with git
-llm-export full my-export.json -o ~/ai-chats --git --process-artifacts -j pretty
+llm-export full chatgpt-export.zip -o ~/ai-chats --git --process-artifacts -j pretty
 
 # Focus on Claude artifacts
-llm-export export claude-export.json --process-artifacts -j pretty
+llm-export export claude-export.zip --process-artifacts -j pretty
 
 # Organize existing collection
-llm-export organize my-export.json --git --threshold 2
+llm-export organize claude-export.zip --git --threshold 2
 
 # Extract JSON from existing files
 llm-export extract-json ./exported-chats/
@@ -286,7 +286,7 @@ llm-export extract-json ./exported-chats/
 ### For Writers
 ```bash
 # Export your writing conversations with full artifact support
-llm-export full claude-writing-export.json -o ./writing-archive \
+llm-export full claude-export.zip -o ./writing-archive \
   --git --process-artifacts -j pretty
 
 # Search for character mentions across all conversations
@@ -296,7 +296,7 @@ cd writing-archive && git grep -i "protagonist.*chris"
 ### For Developers  
 ```bash
 # Export code-focused conversations
-llm-export export chatgpt-code-export.json --artifacts --git
+llm-export export chatgpt-export.zip --artifacts --git
 
 # Find all Python code blocks
 cd exported-chats && find artifacts/ -name "*.py" | xargs grep "def "
@@ -305,7 +305,7 @@ cd exported-chats && find artifacts/ -name "*.py" | xargs grep "def "
 ### For Researchers
 ```bash
 # Organize research conversations by topic
-llm-export organize research-export.json --threshold 3 --min 2 --git
+llm-export organize claude-export.zip --threshold 3 --min 2 --git
 
 # Track research evolution over time
 cd exported-chats && git log --oneline --name-status
