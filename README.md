@@ -47,9 +47,9 @@ npm run build
 npm install -g .
 ```
 
-### Option 3: NPM (Coming Soon)
+### Option 3: NPM (Maybe Someday)
 ```bash
-# Will be available after npm publish
+# Not currently published to npm registry
 npm install -g llm-export-importer
 ```
 
