@@ -1,16 +1,15 @@
 # LLM Export Importer
 
-A powerful tool to extract, organize, and version-control your AI chat exports from ChatGPT and Claude. Transform chaotic JSON exports into organized, searchable markdown files with full git integration and complete artifact extraction.
+A tool to extract your AI chat history from ChatGPT and Claude exports, convert them to markdown files, and make them searchable with git.
 
-## ✨ Key Features
+## Features
 
-- **🔍 Full-text search** with `git grep` across all conversations
-- **📁 Smart organization** into projects with auto-detection
-- **🎯 Artifact extraction** for code blocks, documents, and JSON data
-- **🔧 Git integration** with automatic repository setup and commits
-- **📝 Rich content support** including complete Claude artifact extraction with full content
-- **🔄 Incremental exports** that append to existing archives
-- **🚀 Zero configuration** - just point and export
+- **Search** your chat history with `git grep`
+- **Extract** conversations to individual markdown files  
+- **Process** Claude artifacts (extracts full content, not placeholder text)
+- **Organize** chats by keywords into project folders (basic clustering)
+- **Git integration** for version control and searching
+- **Handles** both ZIP and JSON export files
 
 ## Installation
 
@@ -131,14 +130,16 @@ llm-export export claude-export.zip -o ./my-chats
 - **ZIP support**: Handles both JSON and ZIP export files
 
 ### 3. 🗂️ Organize Projects
-Automatically group related conversations:
+Group conversations by keyword similarity:
 
 ```bash
 llm-export organize claude-export.json -o ./organized-chats --git
 
-# Adjust sensitivity
+# Adjust clustering sensitivity (higher = stricter matching)
 llm-export organize claude-export.json --threshold 5 --min 3
 ```
+
+**Note**: Organization is basic keyword clustering - it finds chats sharing 3+ common words and groups them. Results may need manual cleanup.
 
 ### 4. 🚀 Full Export
 Do everything in one command:
@@ -149,12 +150,12 @@ llm-export full claude-export.json -o ./my-archive \
 ```
 
 **What it does:**
-1. ✅ Creates cumulative chat list (appends to existing)
-2. ✅ Exports all chats as individual markdown files  
-3. ✅ Extracts and processes all artifacts
-4. ✅ Auto-organizes into projects
-5. ✅ Initializes git and commits everything
-6. ✅ Sets up for instant searching with `git grep`
+1. Lists all chats chronologically
+2. Exports each chat as a markdown file
+3. Extracts artifacts and code blocks
+4. Groups related chats by keywords
+5. Initializes git repository
+6. Makes everything searchable
 
 ### 5. 🔧 Extract JSON (Bonus)
 Process existing markdown files to extract JSON:
@@ -310,11 +311,8 @@ llm-export organize research-export.json --threshold 3 --min 2 --git
 cd exported-chats && git log --oneline --name-status
 ```
 
-## 🔒 Privacy & Security
+## Privacy
 
-- ✅ **100% local processing** - Your data never leaves your computer
-- ✅ **No cloud dependencies** - All processing happens offline  
-- ✅ **Git-ready output** - Version control your conversations safely
-- ✅ **Structured extraction** - Easy to audit what's exported
-
-Transform your AI conversation chaos into organized, searchable knowledge! 🎉
+- All processing happens locally on your computer
+- No data is sent anywhere
+- No external API calls or dependencies
