@@ -53,17 +53,43 @@ npm install -g .
 npm install -g llm-export-importer
 ```
 
+## Getting Your Export Files
+
+Before using this tool, you'll need to download your conversation history from your AI platform:
+
+### 📥 ChatGPT (OpenAI)
+1. Go to [chat.openai.com](https://chat.openai.com)
+2. Click your profile → Settings → Data controls
+3. Click "Export data" → "Export"
+4. You'll receive an email with a download link to a ZIP file
+5. Download and use the ZIP file directly with this tool
+
+### 📥 Claude (Anthropic)
+1. Go to [claude.ai](https://claude.ai)
+2. Click your initials (bottom left) → Settings
+3. Navigate to "Account" → "Export your data"
+4. Click "Request export"
+5. You'll receive an email with a download link to a ZIP file
+6. Download and use the ZIP file directly with this tool
+
+### 📥 Gemini & Perplexity
+- **Gemini**: Settings → Data & privacy → Download your data
+- **Perplexity**: Settings → Data → Export conversations
+
+**Note**: Export processing typically takes a few minutes to a few hours. You'll receive an email when your download is ready.
+
 ## Quick Start
 
 ```bash
-# List all your chats in date order
-llm-export list your-export.json
+# Works with both ZIP files and extracted JSON
+llm-export list claude-export.zip
+llm-export list chatgpt-conversations.json
 
 # Export with full features and git setup
-llm-export full your-export.json --git --process-artifacts -j pretty
+llm-export full claude-export.zip --git --process-artifacts -j pretty
 
 # Simple export to markdown files
-llm-export export your-export.json -o ./my-chats
+llm-export export chatgpt-export.zip -o ./my-chats
 
 # Auto-organize into projects
 llm-export organize your-export.json -o ./organized
